@@ -101,18 +101,21 @@ def build_graph(return_builder=False):
         last_msg = state["messages"][-1]
         if hasattr(last_msg, "tool_calls") and getattr(last_msg, "tool_calls", None):
             return "sales_tools"
+        # If no tool calls, end the conversation
         return END
 
     def route_support(state: dict) -> str:
         last_msg = state["messages"][-1]
         if hasattr(last_msg, "tool_calls") and getattr(last_msg, "tool_calls", None):
             return "support_tools"
+        # If no tool calls, end the conversation
         return END
 
     def route_after_sales_tool(state: dict) -> str:
         dialog = state.get("dialog_state", [])
         if dialog and dialog[-1] == "customer_support":
             return "customer_support"
+        # After executing sales tools, return to sales assistant to generate final response
         return "sales_rep"
 
     def route_after_support_tool(state: dict) -> str:
@@ -126,7 +129,8 @@ def build_graph(return_builder=False):
         ):
             return "customer_support"
 
-        return END
+        # After executing support tools, return to support assistant to generate final response
+        return "customer_support"
 
     builder.add_conditional_edges(START, route_start, ["sales_rep", "customer_support"])
     builder.add_conditional_edges("sales_rep", route_sales, ["sales_tools", END])
