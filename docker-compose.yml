@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  shopagent:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      # Groq (Free & Fast)
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-groq}
+      
+      # Optional: OpenAI fallback
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # App config
+      - PYTHONPATH=/app
+    volumes:
+      # Mount source code for development
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./dataset:/app/dataset
+      - ./vector_db:/app/vector_db
+      # Mount app.py for live editing
+      - ./app.py:/app/app.py
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    depends_on:
+      - redis
+      
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data: 
