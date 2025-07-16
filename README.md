@@ -5,6 +5,29 @@ Hi!
 
 You will be expected to finish this on your own, but you can use the available channels on Discord to ask questions and help others. Please read the entire README and ASSIGNMENT.md before starting, this will give you a better idea of what you need to accomplish.
 
+## 🚀 Quick Start with FREE LLM
+
+**New!** You can now use this project completely **FREE** with Groq instead of OpenAI:
+
+```bash
+# 1. Clone and setup
+git clone your-repo
+cd ShopAgent
+
+# 2. Run the setup script
+./docker-setup.sh
+
+# 3. Sign up at https://groq.com (free)
+# 4. Get your API key and enter it when prompted
+# 5. Access the app at http://localhost:8501
+```
+
+**Benefits of using Groq:**
+- 💰 **100% FREE** - No credit card required
+- 🚀 **Super fast** - Faster than OpenAI
+- 🤖 **Llama 3.1 8B** - High-quality model
+- 🔄 **OpenAI compatible** - Drop-in replacement
+
 ## The Business problem
 
 You are working for a major e-commerce company that wants to revolutionize their customer service experience using AI. They have requested the Data Science team to build an intelligent shopping assistant that can help customers find products, manage their shopping cart, and handle support requests automatically.
@@ -31,7 +54,7 @@ The technologies involved are:
 - Python as the main programming language
 - LangChain for LLM integration and tool management
 - LangGraph for conversation flow orchestration
-- OpenAI GPT models for natural language understanding
+- **Groq (FREE)** or OpenAI GPT models for natural language understanding
 - Chroma vector database for semantic product search
 - HuggingFace embeddings for text vectorization
 - Pandas for data manipulation and filtering
@@ -43,8 +66,26 @@ The technologies involved are:
 
 Before starting, you must have:
 - Python 3.10+
-- An OpenAI API key (Or change for your model of choice!)
-- Git (for cloning if using Google Colab)
+- Docker and Docker Compose
+- A Groq API key (FREE at https://groq.com) or OpenAI API key
+
+### Quick Setup with Docker (Recommended)
+
+```bash
+# 1. Run the setup script
+./docker-setup.sh
+
+# 2. Follow the prompts to configure Groq (free)
+# 3. The script will automatically:
+#    - Build the Docker image
+#    - Download the dataset
+#    - Build the vector database
+#    - Start the application
+
+# 4. Access the app at http://localhost:8501
+```
+
+### Manual Setup
 
 A `requirements.txt` file is provided with all the needed Python libraries for running this project. For installing the dependencies just run:
 
@@ -52,12 +93,16 @@ A `requirements.txt` file is provided with all the needed Python libraries for r
 $ pip install -r requirements.txt
 ```
 
-**Important**: Set your OpenAI API key as an environment variable:
+**Important**: Set your LLM API key as an environment variable:
 ```bash
-export OPENAI_API_KEY="your-api-key-here"
+# For Groq (FREE)
+export GROQ_API_KEY="your-groq-api-key-here"
+
+# OR for OpenAI (PAID)
+export OPENAI_API_KEY="your-openai-api-key-here"
 ```
 
-*Note:* We encourage you to install those inside a virtual environment.
+*Note:* We encourage you to install those inside a virtual environment or use Docker.
 
 Please see `ASSIGNMENT.md` for detailed instructions on building the vector database, which is required before the system will work.
 

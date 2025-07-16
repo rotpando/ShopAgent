@@ -6,6 +6,7 @@ import os
 import sys
 import uuid
 from datetime import datetime
+import html
 
 import pandas as pd
 import streamlit as st
@@ -350,25 +351,16 @@ def process_user_input():
         # Get the latest messages
         messages = state["messages"]
 
-        # Process new messages
+        # Process new messages - ONLY show final AI responses, not tool calls
         new_messages = [msg for msg in messages if msg not in st.session_state.messages]
         for msg in new_messages:
             msg_type = msg.__class__.__name__
             content = getattr(msg, "content", "")
 
             if msg_type == "AIMessage":
-                if hasattr(msg, "tool_calls") and msg.tool_calls:
-                    for tc in msg.tool_calls:
-                        formatted_call = format_tool_call(tc)
-                        tool_name = tc.get("name", "unknown_tool")
-                        st.session_state.chat_history.append(
-                            {
-                                "role": "tool_call",
-                                "content": formatted_call,
-                                "tool_name": tool_name,
-                            }
-                        )
-                else:
+                # Only show AI messages that are NOT tool calls (final responses)
+                if not (hasattr(msg, "tool_calls") and msg.tool_calls):
+                    # This is a final response, show it
                     st.session_state.chat_history.append(
                         {
                             "role": "assistant",
@@ -377,6 +369,7 @@ def process_user_input():
                         }
                     )
             elif msg_type == "ToolMessage":
+                # Handle tool results silently (don't show them)
                 tool_call_id = getattr(msg, "tool_call_id", "unknown_id")
                 tool_name = "unknown_tool"
 
@@ -388,11 +381,7 @@ def process_user_input():
                                 tool_name = tc.get("name", "unknown_tool")
                                 break
 
-                st.session_state.chat_history.append(
-                    {"role": "tool_result", "content": content, "tool_name": tool_name}
-                )
-
-                # Try to update cart from view_cart if that was the tool used
+                # Update cart silently if it's a view_cart tool
                 if tool_name == "view_cart":
                     cart_items = parse_cart_from_tool_message(content)
                     if cart_items:
@@ -453,25 +442,16 @@ def view_current_cart():
         # Get the latest messages
         messages = state["messages"]
 
-        # Process new messages
+        # Process new messages - ONLY show final AI responses, not tool calls
         new_messages = [msg for msg in messages if msg not in st.session_state.messages]
         for msg in new_messages:
             msg_type = msg.__class__.__name__
             content = getattr(msg, "content", "")
 
             if msg_type == "AIMessage":
-                if hasattr(msg, "tool_calls") and msg.tool_calls:
-                    for tc in msg.tool_calls:
-                        formatted_call = format_tool_call(tc)
-                        tool_name = tc.get("name", "unknown_tool")
-                        st.session_state.chat_history.append(
-                            {
-                                "role": "tool_call",
-                                "content": formatted_call,
-                                "tool_name": tool_name,
-                            }
-                        )
-                else:
+                # Only show AI messages that are NOT tool calls (final responses)
+                if not (hasattr(msg, "tool_calls") and msg.tool_calls):
+                    # This is a final response, show it
                     st.session_state.chat_history.append(
                         {
                             "role": "assistant",
@@ -480,6 +460,7 @@ def view_current_cart():
                         }
                     )
             elif msg_type == "ToolMessage":
+                # Handle tool results silently (don't show them)
                 tool_call_id = getattr(msg, "tool_call_id", "unknown_id")
                 tool_name = "unknown_tool"
 
@@ -491,11 +472,7 @@ def view_current_cart():
                                 tool_name = tc.get("name", "unknown_tool")
                                 break
 
-                st.session_state.chat_history.append(
-                    {"role": "tool_result", "content": content, "tool_name": tool_name}
-                )
-
-                # Try to update cart from view_cart if that was the tool used
+                # Update cart silently if it's a view_cart tool
                 if tool_name == "view_cart":
                     cart_items = parse_cart_from_tool_message(content)
                     if cart_items:
@@ -589,6 +566,7 @@ def reset_conversation():
     st.session_state.pending_approval = None
     st.session_state.current_mode = "sales_rep"
     st.session_state.cart_items = {}
+    st.rerun()  # Force a rerun to clear the display
 
 
 def toggle_debug():
@@ -743,35 +721,29 @@ with chat_container:
         content = msg["content"]
 
         if role == "user":
+            # Escape HTML content to prevent DOM createElement errors
+            escaped_content = html.escape(content)
             st.markdown(
-                f'<div class="user-bubble"><strong>You:</strong><br>{content}</div>',
+                f'<div class="user-bubble"><strong>You:</strong><br>{escaped_content}</div>',
                 unsafe_allow_html=True,
             )
 
         elif role == "assistant":
             mode = msg.get("mode", "assistant").upper().replace("_", " ")
+            # Escape HTML content to prevent DOM createElement errors
+            escaped_content = html.escape(content)
             st.markdown(
-                f'<div class="assistant-bubble"><strong>{mode}:</strong><br>{content}</div>',
+                f'<div class="assistant-bubble"><strong>{mode}:</strong><br>{escaped_content}</div>',
                 unsafe_allow_html=True,
             )
 
-        elif role == "tool_call":
-            tool_name = msg.get("tool_name", "TOOL")
-            st.markdown(
-                f'<div class="tool-bubble"><strong>🔧 CALLING {tool_name}:</strong><br>{content}</div>',
-                unsafe_allow_html=True,
-            )
-
-        elif role == "tool_result":
-            tool_name = msg.get("tool_name", "TOOL")
-            st.markdown(
-                f'<div class="tool-bubble"><strong>🔧 {tool_name} RESULT:</strong><br>{content}</div>',
-                unsafe_allow_html=True,
-            )
+        # Tool calls and results are now handled silently and not displayed
 
         elif role == "supervisor":
+            # Escape HTML content to prevent DOM createElement errors
+            escaped_content = html.escape(content)
             st.markdown(
-                f'<div class="supervisor-bubble"><strong>👨‍💼 SUPERVISOR:</strong><br>{content}</div>',
+                f'<div class="supervisor-bubble"><strong>👨‍💼 SUPERVISOR:</strong><br>{escaped_content}</div>',
                 unsafe_allow_html=True,
             )
 
